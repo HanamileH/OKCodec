@@ -188,7 +188,7 @@ Examples:
             // 5) Assemble the final Lua module.
             string header       = MakeHeader(compressed1.Length, cfg);
             string body         = B64Encode(compressed1 + compressed2);
-            string fileContents = $"local audio = [[{header}|{body}]]\n";
+            string fileContents = $"local sound = Nya.load_sound([[{header}|{body}]])\n";
 
             File.WriteAllText(cfg.OutputPath, fileContents, new UTF8Encoding(false));
 
@@ -306,7 +306,25 @@ Examples:
                     if (v > mx) mx = v;
                     if (v < mn) mn = v;
                 }
+                
+                // Round the min/max values ​​to the nearest lower and upper integers to ensure the sound wave stays strictly within the bounds.
+                {
+                    float shifted = mn * 0.5f + 0.5f;
+                    int q = (int)Math.Floor(shifted * maxRangeCode);
+                    if (q < 0) q = 0;
+                    if (q > maxRangeCode) q = maxRangeCode;
 
+                    mn = (((float)q / maxRangeCode) - 0.5f) / 0.5f;
+                }
+
+                {
+                    float shifted = mx * 0.5f + 0.5f;
+                    int q = (int)Math.Ceiling(shifted * maxRangeCode);
+                    if (q < 0) q = 0;
+                    if (q > maxRangeCode) q = maxRangeCode;
+                    mx = (((float)q / maxRangeCode) - 0.5f) / 0.5f;
+                }
+        
                 float width = mx - mn;
                 if (width < 1e-5f) width = 1e-5f;
 
